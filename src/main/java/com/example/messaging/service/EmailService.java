@@ -6,6 +6,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
@@ -24,11 +25,15 @@ public class EmailService {
         this.otpCacheService = otpCacheService;
     }
 
+
+    @Async("emailExecutor")
     public void sendEmail(ForgetPasswordRequest request) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true);
             String otp = generateOtp();
+
+            otpCacheService.sendOtpToRedis(request.getEmail(),otp);
 
             message.setTo(request.getEmail());
             message.setSubject(SUBJECT);
@@ -36,10 +41,13 @@ public class EmailService {
             log.info("before sending the email");
             mailSender.send(mimeMessage);
             log.info("after sending the mail mail and before save it to redis");
-            otpCacheService.sendOtpToRedis(request.getEmail(),otp);
+
         }
         catch (MessagingException e){
             throw new RuntimeException("Mime message helper exception");
+        }
+        catch (Exception e){
+            throw new RuntimeException("Some other exception occurs", e);
         }
     }
 
