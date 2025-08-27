@@ -16,13 +16,11 @@ import java.util.Random;
 public class EmailService {
 
     private static final String SUBJECT = "Forget-Password: One time password(otp)";
-    private final OtpCacheService otpCacheService;
 
     private final JavaMailSender mailSender;
 
-    public EmailService(JavaMailSender mailSender,OtpCacheService otpCacheService) {
+    public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
-        this.otpCacheService = otpCacheService;
     }
 
 
@@ -31,13 +29,9 @@ public class EmailService {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true);
-            String otp = generateOtp();
-
-            otpCacheService.sendOtpToRedis(request.getEmail(),otp);
-
             message.setTo(request.getEmail());
             message.setSubject(SUBJECT);
-            message.setText(buildOtpHtmlMessage(request.getUsername(), otp),true);
+            message.setText(buildOtpHtmlMessage(request.getUsername(), request.getOtp()),true);
             log.info("before sending the email");
             mailSender.send(mimeMessage);
             log.info("after sending the mail mail and before save it to redis");
@@ -49,15 +43,6 @@ public class EmailService {
         catch (Exception e){
             throw new RuntimeException("Some other exception occurs", e);
         }
-    }
-
-    private String generateOtp(){
-        Random random = new Random();
-        StringBuilder otp = new StringBuilder();
-        for(int i=0;i<6;i++){
-            otp.append(random.nextInt(10));
-        }
-        return otp.toString();
     }
 
     public String buildOtpHtmlMessage(String username, String otp) {
