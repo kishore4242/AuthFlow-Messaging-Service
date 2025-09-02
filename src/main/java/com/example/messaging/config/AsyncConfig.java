@@ -13,7 +13,7 @@ import java.util.concurrent.Executor;
 public class AsyncConfig {
 
     @Bean("emailExecutor")
-    public Executor emailExecutor() {
+    public Executor emailPassowrdExecutor() {
         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
         threadPoolTaskExecutor.setCorePoolSize(2);
         threadPoolTaskExecutor.setMaxPoolSize(15);
@@ -22,5 +22,17 @@ public class AsyncConfig {
         threadPoolTaskExecutor.initialize();
         return threadPoolTaskExecutor;
     }
+
+    @Bean("loginExecutor")
+    public Executor emaimLoginExecutor() {
+        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        threadPoolTaskExecutor.setCorePoolSize(2);
+        threadPoolTaskExecutor.setMaxPoolSize(15);
+        threadPoolTaskExecutor.setQueueCapacity(50);
+        threadPoolTaskExecutor.setThreadNamePrefix("LoginNotification");
+        threadPoolTaskExecutor.initialize();
+        return threadPoolTaskExecutor;
+    }
+
 
 }
